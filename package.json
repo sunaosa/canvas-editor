@@ -1,0 +1,36 @@
+{
+  "name": "canvas-editor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 8050",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "clean": "rm -rf .next"
+  },
+  "dependencies": {
+    "@langchain/community": "^1.1.29",
+    "@langchain/core": "^1.2.5",
+    "@langchain/openai": "^1.5.6",
+    "antd": "^6.6.0",
+    "langchain": "^1.5.5",
+    "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^6.5.1",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@types/styled-components": "^5.1.36",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.26",
+    "sass": "^1.102.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.3.3"
+  }
+}
