@@ -3,7 +3,6 @@
 import { createContext, useState, useContext, ReactNode } from "react";
 import { ConfigProvider, theme, Switch, Typography } from "antd";
 import type { ThemeConfig } from "antd";
-import "./globals.css";
 
 const { Text } = Typography;
 
