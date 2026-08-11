@@ -7,7 +7,7 @@ settings:
 dependencies:
   '@langchain/community':
     specifier: ^1.1.29
-    version: 1.1.29(@browserbasehq/stagehand@1.14.0)(@ibm-cloud/watsonx-ai@1.7.16)(@langchain/core@1.2.5)(ibm-cloud-sdk-core@5.6.0)(openai@7.4.0)
+    version: 1.1.29(@browserbasehq/stagehand@1.14.0)(@ibm-cloud/watsonx-ai@1.7.16)(@langchain/core@1.2.5)(ibm-cloud-sdk-core@5.6.0)(jsonwebtoken@9.0.3)(openai@7.4.0)
   '@langchain/core':
     specifier: ^1.2.5
     version: 1.2.5(openai@7.4.0)
@@ -17,6 +17,9 @@ dependencies:
   antd:
     specifier: ^6.6.0
     version: 6.6.0(react-dom@18.3.1)(react@18.3.1)
+  jsonwebtoken:
+    specifier: ^9.0.3
+    version: 9.0.3
   langchain:
     specifier: ^1.5.5
     version: 1.5.5(@langchain/core@1.2.5)(openai@7.4.0)(react-dom@18.3.1)(react@18.3.1)
@@ -46,6 +49,9 @@ devDependencies:
   '@tailwindcss/postcss':
     specifier: ^4.3.3
     version: 4.3.3
+  '@types/jsonwebtoken':
+    specifier: ^9.0.10
+    version: 9.0.10
   '@types/node':
     specifier: ^20.11.5
     version: 20.19.43
@@ -526,7 +532,7 @@ packages:
       - ws
     dev: false
 
-  /@langchain/community@1.1.29(@browserbasehq/stagehand@1.14.0)(@ibm-cloud/watsonx-ai@1.7.16)(@langchain/core@1.2.5)(ibm-cloud-sdk-core@5.6.0)(openai@7.4.0):
+  /@langchain/community@1.1.29(@browserbasehq/stagehand@1.14.0)(@ibm-cloud/watsonx-ai@1.7.16)(@langchain/core@1.2.5)(ibm-cloud-sdk-core@5.6.0)(jsonwebtoken@9.0.3)(openai@7.4.0):
     resolution: {integrity: sha512-eJbE0IARueEg+Lljk7SIGGeiSnu5u0mcT0MPIF7UG6jYPNXOpSebwiXsS3aIKOyJZSj0DlmBPv7q0hkLrxDtHA==}
     engines: {node: '>=20'}
     deprecated: This package has been deprecated. See https://github.com/langchain-ai/langchainjs-community/issues/61 for more info
@@ -901,6 +907,7 @@ packages:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.6.0
       js-yaml: 4.3.1
+      jsonwebtoken: 9.0.3
       langsmith: 0.8.9(openai@7.4.0)
       math-expression-evaluator: 2.0.7
       openai: 7.4.0(zod@4.4.3)
@@ -2048,9 +2055,15 @@ packages:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
     dev: false
 
+  /@types/jsonwebtoken@9.0.10:
+    resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+    dependencies:
+      '@types/ms': 2.1.0
+      '@types/node': 20.19.43
+    dev: true
+
   /@types/ms@2.1.0:
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
-    dev: false
 
   /@types/node-fetch@2.6.13:
     resolution: {integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==}
