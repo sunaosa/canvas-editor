@@ -3,5 +3,11 @@ node_modules/
 .DS_Store
 *.log
 *.local
+
+# 环境变量
+.env
+.env.local
+.env*.local
+
 .vscode/
 .idea/

@@ -1,25 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import styled from "styled-components";
-import { Input, Button, Form, Typography } from "antd";
+import { App, Input, Button, Form, Typography, Spin } from "antd";
 import { useTheme } from "../theme-provider";
+import { api, ApiError } from "@/lib/api";
+import { useAuthStore, type AuthUser } from "@/store/auth-store";
 
 const { Text } = Typography;
 
-export default function Login() {
+interface LoginValues {
+    username: string;
+    password: string;
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <LoginForm />
+        </Suspense>
+    );
+}
+
+function LoginForm() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { theme } = useTheme();
+    const setUser = useAuthStore((s) => s.setUser);
+    const { message } = App.useApp();
     const [loading, setLoading] = useState(false);
 
-    const onFinish = async (values: { username: string; password: string }) => {
+    const onFinish = async (values: LoginValues) => {
         setLoading(true);
-        console.log("登录:", values);
-        setTimeout(() => setLoading(false), 1000);
+        try {
+            const data = await api.post<{ user: AuthUser; token: string }>(
+                "/api/auth/login",
+                values
+            );
+            setUser(data.user);
+            message.success("登录成功");
+            const redirect = searchParams.get("redirect") || "/chat";
+            router.push(redirect);
+        } catch (error) {
+            const msg = error instanceof ApiError ? error.message : "登录失败";
+            message.error(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <Container style={{ background: theme.colors.gradient }}>
-            <LoginBox $darkMode={theme.darkMode} style={{ backgroundColor: theme.colors.card }}>
+            <LoginBox
+                $darkMode={theme.darkMode}
+                style={{ backgroundColor: theme.colors.card }}
+            >
                 <H2 style={{ color: theme.colors.text }}>Canvas Editor</H2>
                 <SubText style={{ color: theme.colors.textSecondary }}>
                     登录到您的账户
@@ -32,12 +69,16 @@ export default function Login() {
                     autoComplete="off"
                 >
                     <Form.Item
-                        label={<Label style={{ color: theme.colors.text }}>用户名</Label>}
+                        label={
+                            <Label style={{ color: theme.colors.text }}>
+                                用户名或邮箱
+                            </Label>
+                        }
                         name="username"
                         rules={[{ required: true, message: "请输入用户名" }]}
                     >
                         <Input
-                            placeholder="请输入用户名"
+                            placeholder="请输入用户名或邮箱"
                             size="large"
                             style={{
                                 backgroundColor: theme.colors.backgroundSecondary,
@@ -49,7 +90,11 @@ export default function Login() {
                     </Form.Item>
 
                     <Form.Item
-                        label={<Label style={{ color: theme.colors.text }}>密码</Label>}
+                        label={
+                            <Label style={{ color: theme.colors.text }}>
+                                密码
+                            </Label>
+                        }
                         name="password"
                         rules={[{ required: true, message: "请输入密码" }]}
                     >
@@ -83,9 +128,9 @@ export default function Login() {
                     <Text style={{ color: theme.colors.textSecondary }}>
                         还没有账户？
                     </Text>
-                    <Link href="#" style={{ color: theme.colors.primary }}>
+                    <StyledLink href="/register" $color={theme.colors.primary}>
                         立即注册
-                    </Link>
+                    </StyledLink>
                 </Footer>
             </LoginBox>
         </Container>
@@ -137,8 +182,23 @@ const Footer = styled.div`
     font-size: 14px;
 `;
 
-const Link = styled.a`
+const StyledLink = styled(Link)<{ $color: string }>`
     margin-left: 4px;
     font-weight: 500;
     text-decoration: none;
+    color: ${({ $color }) => $color};
+    &:hover { text-decoration: underline; }
+`;
+
+const LoadingFallback = () => (
+    <Centered>
+        <Spin size="large" />
+    </Centered>
+);
+
+const Centered = styled.div`
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 `;

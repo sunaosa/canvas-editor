@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useState, useContext, ReactNode } from "react";
-import { ConfigProvider, theme, Switch, Typography } from "antd";
+import { App, ConfigProvider, theme, Switch, Typography } from "antd";
 import type { ThemeConfig } from "antd";
 
 const { Text } = Typography;
@@ -79,27 +79,32 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     return (
         <ThemeContext.Provider value={{ theme: customTheme, toggleTheme }}>
             <ConfigProvider theme={antdTheme}>
-                <div
-                    style={{
-                        ...styles.container,
-                        background: customTheme.colors.gradient,
-                    }}
+                <App
+                    message={{ duration: 2 }}
+                    notification={{ placement: "topRight" }}
                 >
-                    {/* 主题切换按钮 */}
-                    <div style={styles.themeToggle(darkMode)}>
-                        <Switch
-                            checked={darkMode}
-                            onChange={toggleTheme}
-                            checkedChildren="🌙"
-                            unCheckedChildren="☀️"
-                        />
-                        <Text style={{ marginLeft: 8, color: darkMode ? "#f8fafc" : "#1e293b" }}>
-                            {darkMode ? "深色模式" : "浅色模式"}
-                        </Text>
-                    </div>
+                    <div
+                        style={{
+                            ...styles.container,
+                            background: customTheme.colors.gradient,
+                        }}
+                    >
+                        {/* 主题切换按钮 */}
+                        <div style={styles.themeToggle(darkMode)}>
+                            <Switch
+                                checked={darkMode}
+                                onChange={toggleTheme}
+                                checkedChildren="🌙"
+                                unCheckedChildren="☀️"
+                            />
+                            <Text style={{ marginLeft: 8, color: darkMode ? "#f8fafc" : "#1e293b" }}>
+                                {darkMode ? "深色模式" : "浅色模式"}
+                            </Text>
+                        </div>
 
-                    {children}
-                </div>
+                        {children}
+                    </div>
+                </App>
             </ConfigProvider>
         </ThemeContext.Provider>
     );

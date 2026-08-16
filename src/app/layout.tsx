@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import StyledComponentsRegistry from "@/lib/styled-registry";
 import ThemeProvider from "./theme-provider";
 import "./globals.css";
 
@@ -15,7 +16,9 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body>
-                <ThemeProvider>{children}</ThemeProvider>
+                <StyledComponentsRegistry>
+                    <ThemeProvider>{children}</ThemeProvider>
+                </StyledComponentsRegistry>
             </body>
         </html>
     );

@@ -9,38 +9,59 @@ export interface ApiResponse<T = unknown> {
 }
 
 /**
+ * JSON.stringify 兜底：BigInt 安全序列化
+ * Prisma 查出的 BIGINT 字段是 BigInt 类型，无法直接 JSON.stringify
+ */
+function jsonReplacer(_key: string, value: unknown): unknown {
+    if (typeof value === "bigint") {
+        return value.toString();
+    }
+    return value;
+}
+
+/**
+ * 把数据中的所有 BigInt 转换为 string（防止 JSON.stringify 报错）
+ */
+function safeJson<T>(data: T): string {
+    return JSON.stringify(data, jsonReplacer);
+}
+
+/**
  * 统一响应拦截器
  * 自动添加 success、timestamp 等通用字段
+ * 自动处理 BigInt 序列化
  */
 export class ResponseInterceptor {
     /**
      * 成功响应
      */
     static success<T>(data?: T, message?: string): NextResponse<ApiResponse<T>> {
-        return NextResponse.json(
-            {
-                success: true,
-                message: message ?? "请求成功",
-                data,
-                code: 200,
-            },
-            { status: 200 }
-        );
+        const body = safeJson({
+            success: true,
+            message: message ?? "请求成功",
+            data,
+            code: 200,
+        });
+        return new NextResponse(body, {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
     /**
      * 成功响应（带自定义消息）
      */
     static ok(message: string, data?: unknown): NextResponse<ApiResponse> {
-        return NextResponse.json(
-            {
-                success: true,
-                message,
-                data,
-                code: 200,
-            },
-            { status: 200 }
-        );
+        const body = safeJson({
+            success: true,
+            message,
+            data,
+            code: 200,
+        });
+        return new NextResponse(body, {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
     /**
@@ -50,14 +71,15 @@ export class ResponseInterceptor {
         message: string = "服务器内部错误",
         status: number = 500
     ): NextResponse<ApiResponse> {
-        return NextResponse.json(
-            {
-                success: false,
-                error: message,
-                code: status,
-            },
-            { status }
-        );
+        const body = safeJson({
+            success: false,
+            error: message,
+            code: status,
+        });
+        return new NextResponse(body, {
+            status,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
     /**

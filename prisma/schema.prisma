@@ -1,0 +1,31 @@
+// Prisma schema for canvas-editor
+// Prisma 7: 连接 URL 已迁移到 prisma.config.ts
+// 驱动适配器（adapter）由 PrismaClient 构造函数传入
+// 注意：status 字段在数据库中为 SMALLINT（0=禁用 1=正常），不是 PostgreSQL enum
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            BigInt    @id @default(autoincrement())
+  uuid          String    @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username      String    @unique @db.VarChar(50)
+  email         String?   @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  displayName   String?   @map("display_name") @db.VarChar(100)
+  avatarUrl     String?   @map("avatar_url") @db.Text
+  status        Int       @default(1) @db.SmallInt // 0=禁用 1=正常
+  lastLoginAt   DateTime? @map("last_login_at") @db.Timestamptz(6)
+  lastLoginIp   String?   @map("last_login_ip") @db.Inet
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("users")
+}
