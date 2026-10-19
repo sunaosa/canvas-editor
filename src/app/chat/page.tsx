@@ -4,6 +4,7 @@ import { Button, Spin, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import styled from "styled-components";
+import TopNav from "@/components/top-nav";
 import { useAuthStore } from "@/store/auth-store";
 import { useTheme } from "../theme-provider";
 
@@ -18,7 +19,6 @@ export default function ChatPage() {
     const initialized = useAuthStore((s) => s.initialized);
     const authError = useAuthStore((s) => s.authError);
     const fetchMe = useAuthStore((s) => s.fetchMe);
-    const logout = useAuthStore((s) => s.logout);
 
     // 进入页面时拉取用户信息
     useEffect(() => {
@@ -34,65 +34,50 @@ export default function ChatPage() {
         }
     }, [initialized, user, authError, router]);
 
-    const handleLogout = async () => {
-        await logout();
-        router.push("/login");
-    };
-
     // 网络或服务异常:给出重试入口,而不是静默跳登录页
     if (authError) {
         return (
-            <Centered>
-                <EmptyCard
-                    $darkMode={theme.darkMode}
-                    style={{ backgroundColor: theme.colors.card }}
-                >
-                    <Title level={4} style={{ color: theme.colors.text }}>
-                        无法获取用户信息
-                    </Title>
-                    <Text style={{ color: theme.colors.textSecondary }}>
-                        网络或服务异常，请稍后重试
-                    </Text>
-                    <br />
-                    <Button
-                        type="primary"
-                        style={{ marginTop: 16 }}
-                        onClick={() => fetchMe()}
+            <>
+                <TopNav />
+                <Centered>
+                    <EmptyCard
+                        $darkMode={theme.darkMode}
+                        style={{ backgroundColor: theme.colors.card }}
                     >
-                        重试
-                    </Button>
-                </EmptyCard>
-            </Centered>
+                        <Title level={4} style={{ color: theme.colors.text }}>
+                            无法获取用户信息
+                        </Title>
+                        <Text style={{ color: theme.colors.textSecondary }}>
+                            网络或服务异常，请稍后重试
+                        </Text>
+                        <br />
+                        <Button
+                            type="primary"
+                            style={{ marginTop: 16 }}
+                            onClick={() => fetchMe()}
+                        >
+                            重试
+                        </Button>
+                    </EmptyCard>
+                </Centered>
+            </>
         );
     }
 
     if (loading || !initialized || !user) {
         return (
-            <Centered>
-                <Spin size="large" />
-            </Centered>
+            <>
+                <TopNav />
+                <Centered>
+                    <Spin size="large" />
+                </Centered>
+            </>
         );
     }
 
     return (
-        <Container>
-            <Header>
-                <Title
-                    level={3}
-                    style={{ color: theme.colors.text, margin: 0 }}
-                >
-                    Canvas Editor - 对话
-                </Title>
-                <UserArea>
-                    <Text style={{ color: theme.colors.textSecondary }}>
-                        {user.displayName || user.username}
-                    </Text>
-                    <Button onClick={handleLogout} danger size="small">
-                        退出登录
-                    </Button>
-                </UserArea>
-            </Header>
-
+        <>
+            <TopNav />
             <Content>
                 <EmptyCard
                     $darkMode={theme.darkMode}
@@ -110,40 +95,20 @@ export default function ChatPage() {
                     </Text>
                 </EmptyCard>
             </Content>
-        </Container>
+        </>
     );
 }
 
 const Centered = styled.div`
-    min-height: 100vh;
+    min-height: calc(100vh - 64px);
     display: flex;
     align-items: center;
     justify-content: center;
 `;
 
-const Container = styled.div`
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-`;
-
-const Header = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 32px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-`;
-
-const UserArea = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-`;
-
 const Content = styled.div`
-    flex: 1;
     padding: 32px;
+    min-height: calc(100vh - 64px);
     display: flex;
     align-items: center;
     justify-content: center;
