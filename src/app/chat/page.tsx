@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import styled from "styled-components";
 import { Button, Spin, Typography } from "antd";
-import { useTheme } from "../theme-provider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import styled from "styled-components";
 import { useAuthStore } from "@/store/auth-store";
+import { useTheme } from "../theme-provider";
 
 const { Text, Title } = Typography;
 
@@ -16,6 +16,7 @@ export default function ChatPage() {
     const user = useAuthStore((s) => s.user);
     const loading = useAuthStore((s) => s.loading);
     const initialized = useAuthStore((s) => s.initialized);
+    const authError = useAuthStore((s) => s.authError);
     const fetchMe = useAuthStore((s) => s.fetchMe);
     const logout = useAuthStore((s) => s.logout);
 
@@ -26,17 +27,44 @@ export default function ChatPage() {
         }
     }, [initialized, fetchMe]);
 
-    // 拉取完成后若未登录，跳转登录页
+    // 拉取完成后若未登录，跳转登录页(服务异常时不跳,避免把故障误判成未登录)
     useEffect(() => {
-        if (initialized && !user) {
+        if (initialized && !user && !authError) {
             router.push("/login?redirect=/chat");
         }
-    }, [initialized, user, router]);
+    }, [initialized, user, authError, router]);
 
     const handleLogout = async () => {
         await logout();
         router.push("/login");
     };
+
+    // 网络或服务异常:给出重试入口,而不是静默跳登录页
+    if (authError) {
+        return (
+            <Centered>
+                <EmptyCard
+                    $darkMode={theme.darkMode}
+                    style={{ backgroundColor: theme.colors.card }}
+                >
+                    <Title level={4} style={{ color: theme.colors.text }}>
+                        无法获取用户信息
+                    </Title>
+                    <Text style={{ color: theme.colors.textSecondary }}>
+                        网络或服务异常，请稍后重试
+                    </Text>
+                    <br />
+                    <Button
+                        type="primary"
+                        style={{ marginTop: 16 }}
+                        onClick={() => fetchMe()}
+                    >
+                        重试
+                    </Button>
+                </EmptyCard>
+            </Centered>
+        );
+    }
 
     if (loading || !initialized || !user) {
         return (
@@ -49,7 +77,10 @@ export default function ChatPage() {
     return (
         <Container>
             <Header>
-                <Title level={3} style={{ color: theme.colors.text, margin: 0 }}>
+                <Title
+                    level={3}
+                    style={{ color: theme.colors.text, margin: 0 }}
+                >
                     Canvas Editor - 对话
                 </Title>
                 <UserArea>

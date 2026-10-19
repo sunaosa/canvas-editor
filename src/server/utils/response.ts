@@ -35,7 +35,10 @@ export class ResponseInterceptor {
     /**
      * 成功响应
      */
-    static success<T>(data?: T, message?: string): NextResponse<ApiResponse<T>> {
+    static success<T>(
+        data?: T,
+        message?: string,
+    ): NextResponse<ApiResponse<T>> {
         const body = safeJson({
             success: true,
             message: message ?? "请求成功",
@@ -69,7 +72,7 @@ export class ResponseInterceptor {
      */
     static error(
         message: string = "服务器内部错误",
-        status: number = 500
+        status: number = 500,
     ): NextResponse<ApiResponse> {
         const body = safeJson({
             success: false,
@@ -85,7 +88,9 @@ export class ResponseInterceptor {
     /**
      * 业务错误响应（如参数错误、业务逻辑错误）
      */
-    static badRequest(message: string = "请求参数错误"): NextResponse<ApiResponse> {
+    static badRequest(
+        message: string = "请求参数错误",
+    ): NextResponse<ApiResponse> {
         return ResponseInterceptor.error(message, 400);
     }
 
@@ -108,7 +113,13 @@ export class ResponseInterceptor {
      */
     static catch(error: unknown): NextResponse<ApiResponse> {
         console.error("API Error:", error);
-        const message = error instanceof Error ? error.message : "未知错误";
+        // 生产环境不透传内部错误消息(可能含表名/SQL 等敏感信息),细节只留在服务端日志
+        const message =
+            process.env.NODE_ENV === "production"
+                ? "服务器内部错误"
+                : error instanceof Error
+                  ? error.message
+                  : "未知错误";
         return ResponseInterceptor.error(message, 500);
     }
 }

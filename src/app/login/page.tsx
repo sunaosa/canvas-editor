@@ -1,13 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { App, Button, Form, Input, Spin, Typography } from "antd";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import styled from "styled-components";
-import { App, Input, Button, Form, Typography, Spin } from "antd";
+import { ApiError, api } from "@/lib/api";
+import { safeRedirect } from "@/lib/redirect";
+import { type AuthUser, useAuthStore } from "@/store/auth-store";
 import { useTheme } from "../theme-provider";
-import { api, ApiError } from "@/lib/api";
-import { useAuthStore, type AuthUser } from "@/store/auth-store";
 
 const { Text } = Typography;
 
@@ -35,14 +36,14 @@ function LoginForm() {
     const onFinish = async (values: LoginValues) => {
         setLoading(true);
         try {
-            const data = await api.post<{ user: AuthUser; token: string }>(
+            const data = await api.post<{ user: AuthUser }>(
                 "/api/auth/login",
-                values
+                values,
             );
             setUser(data.user);
             message.success("登录成功");
-            const redirect = searchParams.get("redirect") || "/chat";
-            router.push(redirect);
+            // 只允许站内路径,防止 ?redirect=https://evil.com 型开放重定向
+            router.push(safeRedirect(searchParams.get("redirect")));
         } catch (error) {
             const msg = error instanceof ApiError ? error.message : "登录失败";
             message.error(msg);
@@ -81,7 +82,8 @@ function LoginForm() {
                             placeholder="请输入用户名或邮箱"
                             size="large"
                             style={{
-                                backgroundColor: theme.colors.backgroundSecondary,
+                                backgroundColor:
+                                    theme.colors.backgroundSecondary,
                                 color: theme.colors.text,
                                 borderColor: theme.colors.border,
                                 borderRadius: 8,
@@ -102,7 +104,8 @@ function LoginForm() {
                             placeholder="请输入密码"
                             size="large"
                             style={{
-                                backgroundColor: theme.colors.backgroundSecondary,
+                                backgroundColor:
+                                    theme.colors.backgroundSecondary,
                                 color: theme.colors.text,
                                 borderColor: theme.colors.border,
                                 borderRadius: 8,

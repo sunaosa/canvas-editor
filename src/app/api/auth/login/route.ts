@@ -1,7 +1,9 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { userService } from "@/server/services/user-service";
+import { setAuthCookie } from "@/server/utils/cookies";
 import { ResponseInterceptor } from "@/server/utils/response";
+import { toErrorResponse } from "@/server/utils/service-error";
 
 const loginSchema = z.object({
     username: z.string().min(1, "用户名不能为空"),
@@ -13,7 +15,9 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const parsed = loginSchema.safeParse(body);
         if (!parsed.success) {
-            return ResponseInterceptor.badRequest(parsed.error.issues[0]?.message ?? "请求参数错误");
+            return ResponseInterceptor.badRequest(
+                parsed.error.issues[0]?.message ?? "请求参数错误",
+            );
         }
 
         const ip =
@@ -23,26 +27,11 @@ export async function POST(request: NextRequest) {
 
         const { user, token } = await userService.login(parsed.data, ip);
 
-        const response = ResponseInterceptor.success({ user, token }, "登录成功");
-        response.cookies.set("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-        });
+        // token 只通过 HttpOnly Cookie 下发,不放进响应体(防 XSS 读取)
+        const response = ResponseInterceptor.success({ user }, "登录成功");
+        setAuthCookie(response, token);
         return response;
     } catch (error) {
-        return handleServiceError(error);
+        return toErrorResponse(error);
     }
-}
-
-function handleServiceError(error: unknown) {
-    if (error && typeof error === "object" && "code" in error) {
-        const e = error as { code: string; message: string };
-        if (e.code === "INVALID_CREDENTIALS" || e.code === "ACCOUNT_DISABLED") {
-            return ResponseInterceptor.unauthorized(e.message);
-        }
-    }
-    return ResponseInterceptor.catch(error);
 }

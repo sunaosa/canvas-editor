@@ -1,11 +1,5 @@
-import { ModelFactory, type ModelConfig } from "./model";
 import type { ChatOpenAI } from "@langchain/openai";
-
-export interface AgentInvokeOptions {
-    prompt: string;
-    systemPrompt?: string;
-    config?: ModelConfig;
-}
+import { type ModelConfig, ModelFactory } from "./model";
 
 /**
  * AI Agent
@@ -21,8 +15,8 @@ export class Agent {
     /**
      * 单轮对话
      */
-    async invoke(options: AgentInvokeOptions): Promise<string> {
-        const result = await this.llm.invoke(options.prompt);
+    async invoke(prompt: string): Promise<string> {
+        const result = await this.llm.invoke(prompt);
         return typeof result.content === "string"
             ? result.content
             : JSON.stringify(result.content);
@@ -30,6 +24,7 @@ export class Agent {
 
     /**
      * 健康检查
+     * 注意:每次 ping 都会真实调用一次 LLM(消耗 token),只用于探活,不要高频调用
      */
     async ping(): Promise<boolean> {
         try {

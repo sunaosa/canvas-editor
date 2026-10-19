@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useState, useContext, ReactNode } from "react";
-import { App, ConfigProvider, theme, Switch, Typography } from "antd";
 import type { ThemeConfig } from "antd";
+import { App, ConfigProvider, Switch, Typography, theme } from "antd";
+import { createContext, type ReactNode, useContext, useState } from "react";
 
 const { Text } = Typography;
 
@@ -38,7 +38,8 @@ function getThemeColors(darkMode: boolean): CustomTheme["colors"] {
             textSecondary: "#94a3b8",
             border: "#334155",
             card: "#1e293b",
-            gradient: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+            gradient:
+                "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
         };
     }
     return {
@@ -97,7 +98,12 @@ function ThemeProvider({ children }: { children: ReactNode }) {
                                 checkedChildren="🌙"
                                 unCheckedChildren="☀️"
                             />
-                            <Text style={{ marginLeft: 8, color: darkMode ? "#f8fafc" : "#1e293b" }}>
+                            <Text
+                                style={{
+                                    marginLeft: 8,
+                                    color: darkMode ? "#f8fafc" : "#1e293b",
+                                }}
+                            >
                                 {darkMode ? "深色模式" : "浅色模式"}
                             </Text>
                         </div>
@@ -133,7 +139,9 @@ const styles = {
         alignItems: "center",
         gap: 8,
         padding: "8px 16px",
-        backgroundColor: darkMode ? "rgba(30, 41, 59, 0.9)" : "rgba(255, 255, 255, 0.9)",
+        backgroundColor: darkMode
+            ? "rgba(30, 41, 59, 0.9)"
+            : "rgba(255, 255, 255, 0.9)",
         borderRadius: 8,
         border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`,
     }),

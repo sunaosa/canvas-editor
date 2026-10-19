@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Next.js 16 代理（原 middleware 已废弃）
@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
  * - /api/chat     聊天 API
  *
  * 公开路由：
- * - /login
+ * - /login /register
  * - /api/auth/*
  * - /_next/*
  * - 静态资源
@@ -18,17 +18,24 @@ import { NextRequest, NextResponse } from "next/server";
 const PROTECTED_PREFIXES = ["/chat", "/api/chat"];
 
 // 公开路由前缀（明确放行）
-const PUBLIC_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon"];
+// /_next、/favicon 已被下方 matcher 排除,这里再放行属于防御性冗余,保留以防 matcher 调整
+const PUBLIC_PREFIXES = [
+    "/login",
+    "/register",
+    "/api/auth",
+    "/_next",
+    "/favicon",
+];
 
 function isProtected(pathname: string): boolean {
     return PROTECTED_PREFIXES.some(
-        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
     );
 }
 
 function isPublic(pathname: string): boolean {
     return PUBLIC_PREFIXES.some(
-        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
     );
 }
 
@@ -51,7 +58,7 @@ export function proxy(request: NextRequest) {
             if (pathname.startsWith("/api/")) {
                 return NextResponse.json(
                     { success: false, error: "未授权", code: 401 },
-                    { status: 401 }
+                    { status: 401 },
                 );
             }
             const loginUrl = new URL("/login", request.url);

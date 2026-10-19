@@ -24,7 +24,7 @@ export class ApiError extends Error {
     constructor(
         message: string,
         public readonly code: number,
-        public readonly status: number
+        public readonly status: number,
     ) {
         super(message);
         this.name = "ApiError";
@@ -48,13 +48,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
         throw new ApiError(
             "服务器响应格式错误",
             response.status,
-            response.status
+            response.status,
         );
     }
 
     if (!response.ok || !json.success) {
         const error =
-            "error" in json ? json.error : json.message ?? "请求失败";
+            "error" in json ? json.error : (json.message ?? "请求失败");
         throw new ApiError(error, json.code, response.status);
     }
 

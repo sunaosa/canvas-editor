@@ -21,7 +21,8 @@ export class ModelFactory {
         return new ChatOpenAI({
             model: process.env.MODEL_NAME!,
             apiKey: process.env.API_KEY!,
-            temperature: config.temperature ?? ModelFactory.defaultConfig.temperature,
+            temperature:
+                config.temperature ?? ModelFactory.defaultConfig.temperature,
             maxTokens: config.maxTokens ?? ModelFactory.defaultConfig.maxTokens,
             streaming: config.streaming ?? ModelFactory.defaultConfig.streaming,
             configuration: {

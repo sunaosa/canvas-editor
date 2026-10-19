@@ -1,12 +1,15 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { toSafeUser, userService } from "@/server/services/user-service";
 import { extractToken, verifyToken } from "@/server/utils/auth";
-import { userService } from "@/server/services/user-service";
 import { ResponseInterceptor } from "@/server/utils/response";
 
 export async function GET(request: NextRequest) {
     try {
         const cookieToken = request.cookies.get("token")?.value ?? null;
-        const token = extractToken(request.headers.get("authorization"), cookieToken);
+        const token = extractToken(
+            request.headers.get("authorization"),
+            cookieToken,
+        );
         if (!token) {
             return ResponseInterceptor.unauthorized("未登录");
         }
@@ -24,21 +27,8 @@ export async function GET(request: NextRequest) {
             return ResponseInterceptor.unauthorized("账号已被禁用");
         }
 
-        // 仅返回必要字段
-        return ResponseInterceptor.success(
-            {
-                id: Number(user.id),
-                uuid: user.uuid,
-                username: user.username,
-                email: user.email,
-                displayName: user.displayName,
-                avatarUrl: user.avatarUrl,
-                status: user.status,
-                lastLoginAt: user.lastLoginAt,
-                createdAt: user.createdAt,
-            },
-            "获取成功"
-        );
+        // 复用 toSafeUser,避免再手写一份字段挑选(与 login/register 保持同构)
+        return ResponseInterceptor.success(toSafeUser(user), "获取成功");
     } catch (error) {
         return ResponseInterceptor.catch(error);
     }

@@ -1,5 +1,5 @@
-import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
+import { prisma } from "./prisma";
 
 /**
  * 用户数据访问层

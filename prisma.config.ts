@@ -1,6 +1,10 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import path from "node:path";
 import { defineConfig, env } from "prisma/config";
+
+// 与 Next.js 保持一致的优先级:.env.local 覆盖 .env
+config({ path: ".env" });
+config({ path: ".env.local", override: true });
 
 /**
  * Prisma 7 配置

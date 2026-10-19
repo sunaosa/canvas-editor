@@ -1,14 +1,9 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { clearAuthCookie } from "@/server/utils/cookies";
 import { ResponseInterceptor } from "@/server/utils/response";
 
 export async function POST(_request: NextRequest) {
     const response = ResponseInterceptor.ok("退出登录成功");
-    response.cookies.set("token", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 0,
-        path: "/",
-    });
+    clearAuthCookie(response);
     return response;
 }
