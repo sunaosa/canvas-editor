@@ -1,10 +1,8 @@
 "use client";
 
 import type { ThemeConfig } from "antd";
-import { App, ConfigProvider, Switch, Typography, theme } from "antd";
+import { App, ConfigProvider, theme } from "antd";
 import { createContext, type ReactNode, useContext, useState } from "react";
-
-const { Text } = Typography;
 
 /** 自定义主题颜色（非 antd DOM 使用） */
 export interface CustomTheme {
@@ -90,24 +88,6 @@ function ThemeProvider({ children }: { children: ReactNode }) {
                             background: customTheme.colors.gradient,
                         }}
                     >
-                        {/* 主题切换按钮 */}
-                        <div style={styles.themeToggle(darkMode)}>
-                            <Switch
-                                checked={darkMode}
-                                onChange={toggleTheme}
-                                checkedChildren="🌙"
-                                unCheckedChildren="☀️"
-                            />
-                            <Text
-                                style={{
-                                    marginLeft: 8,
-                                    color: darkMode ? "#f8fafc" : "#1e293b",
-                                }}
-                            >
-                                {darkMode ? "深色模式" : "浅色模式"}
-                            </Text>
-                        </div>
-
                         {children}
                     </div>
                 </App>
@@ -130,21 +110,6 @@ const styles = {
         minHeight: "100vh",
         transition: "background 0.3s ease",
     },
-    themeToggle: (darkMode: boolean): React.CSSProperties => ({
-        position: "fixed" as const,
-        top: 20,
-        right: 20,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "8px 16px",
-        backgroundColor: darkMode
-            ? "rgba(30, 41, 59, 0.9)"
-            : "rgba(255, 255, 255, 0.9)",
-        borderRadius: 8,
-        border: `1px solid ${darkMode ? "#334155" : "#e2e8f0"}`,
-    }),
 };
 
 export default ThemeProvider;

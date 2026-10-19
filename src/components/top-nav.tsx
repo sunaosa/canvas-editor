@@ -1,6 +1,15 @@
 "use client";
 
-import { App, Badge, Button, Dropdown, Menu, Tooltip, Typography } from "antd";
+import {
+    App,
+    Badge,
+    Button,
+    Dropdown,
+    Menu,
+    Switch,
+    Tooltip,
+    Typography,
+} from "antd";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import styled from "styled-components";
@@ -22,7 +31,7 @@ function gotoChat(router: ReturnType<typeof useRouter>, loggedIn: boolean) {
 export default function TopNav() {
     const router = useRouter();
     const pathname = usePathname();
-    const { theme } = useTheme();
+    const { theme, toggleTheme } = useTheme();
     const { message } = App.useApp();
 
     const user = useAuthStore((s) => s.user);
@@ -133,6 +142,18 @@ export default function TopNav() {
                     </ChatRobotButton>
                 </Tooltip>
 
+                <Tooltip
+                    title={theme.darkMode ? "切换到浅色模式" : "切换到深色模式"}
+                    placement="bottomRight"
+                >
+                    <Switch
+                        checked={theme.darkMode}
+                        onChange={toggleTheme}
+                        checkedChildren="🌙"
+                        unCheckedChildren="☀️"
+                        aria-label="切换主题"
+                    />
+                </Tooltip>
                 {isLoggedIn && user ? (
                     <Dropdown menu={userMenu} placement="bottomRight">
                         <UserBadge $border={theme.colors.border}>
@@ -164,6 +185,8 @@ export default function TopNav() {
                         登录
                     </Button>
                 )}
+
+                
             </Right>
         </Bar>
     );
@@ -262,4 +285,6 @@ const Avatar = styled.span<{ $bg: string }>`
     font-weight: 600;
 `;
 
-// 防止未使用变量警告(响应网络异常分支)
+// const ThemeSwitch = styled(Switch)`
+//     min-width: 56px;
+// `;
