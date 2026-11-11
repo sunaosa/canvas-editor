@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+:root {
+    --font-display:
+        "Bahnschrift", "DIN Alternate", "Segoe UI Variable Display",
+        "PingFang SC", "Microsoft YaHei UI", system-ui, sans-serif;
+    --font-body:
+        "Segoe UI Variable Text", "Segoe UI", -apple-system, "PingFang SC",
+        "Microsoft YaHei UI", system-ui, sans-serif;
+    --font-mono:
+        "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", ui-monospace,
+        "Microsoft YaHei UI", monospace;
+    /* 图纸网格间距 */
+    --grid-unit: 24px;
+}
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+    background: rgba(214, 69, 31, 0.18);
+}
+
+/* 键盘可达性：统一焦点环 */
+:focus-visible {
+    outline: 2px solid #d6451f;
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* 尊重系统的减弱动效设置：各组件内部用 @media (prefers-reduced-motion: reduce) 自行降级 */

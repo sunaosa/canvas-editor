@@ -1,15 +1,21 @@
 "use client";
 
-import { App, Button, Form, Input, Typography } from "antd";
+import { Form as AntdForm, App } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styled from "styled-components";
+import { AuthShell } from "@/components/auth-shell";
+import { ArrowIcon } from "@/components/icons";
+import {
+    FieldLabel,
+    Notice,
+    PasswordField,
+    PrimaryButton,
+    TextField,
+} from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { type AuthUser, useAuthStore } from "@/store/auth-store";
-import { useTheme } from "../theme-provider";
-
-const { Text } = Typography;
 
 interface RegisterValues {
     username: string;
@@ -21,18 +27,19 @@ interface RegisterValues {
 
 export default function RegisterPage() {
     const router = useRouter();
-    const { theme } = useTheme();
     const setUser = useAuthStore((s) => s.setUser);
     const { message } = App.useApp();
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const onFinish = async (values: RegisterValues) => {
         if (values.password !== values.confirmPassword) {
-            message.error("两次输入的密码不一致");
+            setError("两次输入的密码不一致");
             return;
         }
 
         setLoading(true);
+        setError(null);
         try {
             const data = await api.post<{ user: AuthUser }>(
                 "/api/auth/register",
@@ -44,204 +51,151 @@ export default function RegisterPage() {
                 },
             );
             setUser(data.user);
-            message.success("注册成功，正在跳转...");
+            message.success("注册成功，正在进入工作台");
             router.push("/chat");
-        } catch (error) {
-            const msg = error instanceof ApiError ? error.message : "注册失败";
-            message.error(msg);
+        } catch (err) {
+            const msg = err instanceof ApiError ? err.message : "注册失败";
+            setError(msg);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <Container style={{ background: theme.colors.gradient }}>
-            <RegisterBox
-                $darkMode={theme.darkMode}
-                style={{ backgroundColor: theme.colors.card }}
+        <AuthShell
+            title="创建账户"
+            description="注册后即可保存画稿，并与 AI 助手讨论构图。"
+            footer={
+                <FooterLine>
+                    已经有账户了？
+                    <FooterLink href="/login">
+                        去登录
+                        <ArrowIcon size={15} />
+                    </FooterLink>
+                </FooterLine>
+            }
+        >
+            <AntdForm
+                name="register"
+                onFinish={onFinish}
+                layout="vertical"
+                autoComplete="off"
+                requiredMark={false}
+                onValuesChange={() => setError(null)}
             >
-                <H2 style={{ color: theme.colors.text }}>Canvas Editor</H2>
-                <SubText style={{ color: theme.colors.textSecondary }}>
-                    创建新账户
-                </SubText>
+                {error ? (
+                    <ErrorSlot>
+                        <Notice $tone="error" role="alert">
+                            {error}
+                        </Notice>
+                    </ErrorSlot>
+                ) : null}
 
-                <Form
-                    name="register"
-                    onFinish={onFinish}
-                    layout="vertical"
-                    autoComplete="off"
-                >
-                    <Form.Item
-                        label={
-                            <Label style={{ color: theme.colors.text }}>
-                                用户名
-                            </Label>
-                        }
+                <FormItem>
+                    <FieldLabel htmlFor="register-username">用户名</FieldLabel>
+                    <TextField
+                        id="register-username"
                         name="username"
-                        rules={[
-                            { required: true, message: "请输入用户名" },
-                            {
-                                min: 3,
-                                max: 50,
-                                message: "用户名长度 3-50 字符",
-                            },
-                            {
-                                pattern: /^[a-zA-Z0-9_-]+$/,
-                                message:
-                                    "用户名只能包含字母、数字、下划线、短横线",
-                            },
-                        ]}
-                    >
-                        <Input
-                            placeholder="字母/数字/下划线/短横线"
-                            size="large"
-                        />
-                    </Form.Item>
+                        placeholder="字母、数字、下划线或短横线"
+                        autoFocus
+                        autoComplete="username"
+                    />
+                </FormItem>
 
-                    <Form.Item
-                        label={
-                            <Label style={{ color: theme.colors.text }}>
-                                邮箱（可选）
-                            </Label>
-                        }
-                        name="email"
-                        rules={[{ type: "email", message: "邮箱格式不正确" }]}
-                    >
-                        <Input placeholder="example@mail.com" size="large" />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={
-                            <Label style={{ color: theme.colors.text }}>
-                                昵称（可选）
-                            </Label>
-                        }
+                <FormItem>
+                    <FieldLabel htmlFor="register-displayName">
+                        昵称（可选）
+                    </FieldLabel>
+                    <TextField
+                        id="register-displayName"
                         name="displayName"
-                    >
-                        <Input placeholder="显示名称" size="large" />
-                    </Form.Item>
+                        placeholder="展示在顶栏的名字"
+                        autoComplete="nickname"
+                    />
+                </FormItem>
 
-                    <Form.Item
-                        label={
-                            <Label style={{ color: theme.colors.text }}>
-                                密码
-                            </Label>
-                        }
+                <FormItem>
+                    <FieldLabel htmlFor="register-email">
+                        邮箱（可选）
+                    </FieldLabel>
+                    <TextField
+                        id="register-email"
+                        name="email"
+                        placeholder="example@mail.com"
+                        autoComplete="email"
+                    />
+                </FormItem>
+
+                <FormItem>
+                    <FieldLabel htmlFor="register-password">密码</FieldLabel>
+                    <PasswordField
+                        id="register-password"
                         name="password"
-                        rules={[
-                            { required: true, message: "请输入密码" },
-                            {
-                                min: 6,
-                                max: 100,
-                                message: "密码长度 6-100 字符",
-                            },
-                        ]}
-                    >
-                        <Input.Password placeholder="至少 6 位" size="large" />
-                    </Form.Item>
+                        placeholder="至少 6 位"
+                        autoComplete="new-password"
+                    />
+                </FormItem>
 
-                    <Form.Item
-                        label={
-                            <Label style={{ color: theme.colors.text }}>
-                                确认密码
-                            </Label>
-                        }
+                <FormItem>
+                    <FieldLabel htmlFor="register-confirmPassword">
+                        确认密码
+                    </FieldLabel>
+                    <PasswordField
+                        id="register-confirmPassword"
                         name="confirmPassword"
-                        rules={[
-                            { required: true, message: "请再次输入密码" },
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (
-                                        !value ||
-                                        getFieldValue("password") === value
-                                    ) {
-                                        return Promise.resolve();
-                                    }
-                                    return Promise.reject(
-                                        new Error("两次密码不一致"),
-                                    );
-                                },
-                            }),
-                        ]}
+                        placeholder="再输入一次密码"
+                        autoComplete="new-password"
+                    />
+                </FormItem>
+
+                <SubmitItem>
+                    <PrimaryButton
+                        type="primary"
+                        htmlType="submit"
+                        loading={loading}
+                        block
                     >
-                        <Input.Password
-                            placeholder="再次输入密码"
-                            size="large"
-                        />
-                    </Form.Item>
-
-                    <Form.Item style={{ marginTop: 24 }}>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={loading}
-                            block
-                            size="large"
-                            style={{ borderRadius: 8 }}
-                        >
-                            {loading ? "注册中..." : "注册"}
-                        </Button>
-                    </Form.Item>
-                </Form>
-
-                <Footer>
-                    <Text style={{ color: theme.colors.textSecondary }}>
-                        已有账户？
-                    </Text>
-                    <StyledLink href="/login" $color={theme.colors.primary}>
-                        立即登录
-                    </StyledLink>
-                </Footer>
-            </RegisterBox>
-        </Container>
+                        {loading ? "创建中…" : "创建账户"}
+                    </PrimaryButton>
+                </SubmitItem>
+            </AntdForm>
+        </AuthShell>
     );
 }
 
-const Container = styled.div`
-    min-height: 100vh;
+const ErrorSlot = styled.div`
+    margin-bottom: 16px;
+`;
+
+const FormItem = styled(AntdForm.Item)`
+    && {
+        margin-bottom: 16px;
+    }
+`;
+
+const SubmitItem = styled(AntdForm.Item)`
+    && {
+        margin-bottom: 0;
+        margin-top: 24px;
+    }
+`;
+
+const FooterLine = styled.p`
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 24px;
+    gap: 8px;
+    margin: 0;
 `;
 
-const RegisterBox = styled.div<{ $darkMode?: boolean }>`
-    width: 100%;
-    max-width: 460px;
-    padding: 48px;
-    border-radius: 16px;
-    box-shadow: ${({ $darkMode }) =>
-        $darkMode
-            ? "0 20px 60px rgba(0, 0, 0, 0.5)"
-            : "0 20px 60px rgba(0, 0, 0, 0.2)"};
-`;
-
-const H2 = styled.h2`
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 8px;
-`;
-
-const SubText = styled.p`
-    font-size: 14px;
-    text-align: center;
-    margin-bottom: 32px;
-`;
-
-const Label = styled.span``;
-
-const Footer = styled.div`
-    margin-top: 24px;
-    text-align: center;
-    font-size: 14px;
-`;
-
-const StyledLink = styled(Link)<{ $color: string }>`
-    margin-left: 4px;
-    font-weight: 500;
+const FooterLink = styled(Link)`
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.accent};
     text-decoration: none;
-    color: ${({ $color }) => $color};
-    &:hover { text-decoration: underline; }
+
+    &:hover {
+        text-decoration: underline;
+    }
 `;

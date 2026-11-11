@@ -1,96 +1,187 @@
 "use client";
 
 import type { ThemeConfig } from "antd";
-import { App, ConfigProvider, theme } from "antd";
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { App, theme as antdAlgorithm, ConfigProvider } from "antd";
+import {
+    createContext,
+    type ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+import { ThemeProvider as StyledThemeProvider } from "styled-components";
+import { fontBody, fontDisplay, fontMono } from "@/lib/fonts";
 
-/** 自定义主题颜色（非 antd DOM 使用） */
-export interface CustomTheme {
+const STORAGE_KEY = "canvas-editor-theme";
+
+/** 设计令牌：制图桌（石墨灰桌面 / 白图纸 / 朱砂红） */
+export interface StudioColors {
+    /** 桌面 */
+    board: string;
+    /** 桌面凹陷区（导轨、侧栏） */
+    boardDeep: string;
+    /** 图纸 */
+    sheet: string;
+    /** 主墨色（主文字） */
+    ink: string;
+    /** 次级文字 */
+    inkSoft: string;
+    /** 细线 */
+    rule: string;
+    /** 强调色：朱砂 */
+    accent: string;
+    /** 强调色按下 / 深色模式 */
+    accentInk: string;
+    /** 强调色浅底 */
+    accentSoft: string;
+    /** 图纸网格线 */
+    grid: string;
+    /** 图纸网格主线 */
+    gridStrong: string;
+    /** 投影 */
+    shadow: string;
+}
+
+export interface StudioTheme {
     darkMode: boolean;
-    colors: {
-        primary: string;
-        background: string;
-        backgroundSecondary: string;
-        text: string;
-        textSecondary: string;
-        border: string;
-        card: string;
-        gradient: string;
+    colors: StudioColors;
+    fonts: {
+        display: string;
+        body: string;
+        mono: string;
     };
 }
 
-/** 主题 Context */
-const ThemeContext = createContext<{
-    theme: CustomTheme;
+const LIGHT: StudioColors = {
+    board: "#e7eaee",
+    boardDeep: "#dde2e8",
+    sheet: "#ffffff",
+    ink: "#14181d",
+    inkSoft: "#5a6472",
+    rule: "#ccd3db",
+    accent: "#d6451f",
+    accentInk: "#b03a18",
+    accentSoft: "#fbebe4",
+    grid: "#eef1f5",
+    gridStrong: "#dfe4ea",
+    shadow: "0 1px 2px rgba(20, 24, 29, 0.06), 0 10px 30px rgba(20, 24, 29, 0.10)",
+};
+
+const DARK: StudioColors = {
+    board: "#12161b",
+    boardDeep: "#0c0f13",
+    sheet: "#1a1f26",
+    ink: "#e9edf3",
+    inkSoft: "#98a3b2",
+    rule: "#2a313a",
+    accent: "#f0653a",
+    accentInk: "#ff8258",
+    accentSoft: "#2b1a14",
+    grid: "#20262d",
+    gridStrong: "#28303a",
+    shadow: "0 1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.45)",
+};
+
+interface ThemeContextValue {
+    theme: StudioTheme;
     toggleTheme: () => void;
-} | null>(null);
-
-/** 获取主题颜色配置 */
-function getThemeColors(darkMode: boolean): CustomTheme["colors"] {
-    if (darkMode) {
-        return {
-            primary: "#818cf8",
-            background: "#0f172a",
-            backgroundSecondary: "#1e293b",
-            text: "#f8fafc",
-            textSecondary: "#94a3b8",
-            border: "#334155",
-            card: "#1e293b",
-            gradient:
-                "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
-        };
-    }
-    return {
-        primary: "#667eea",
-        background: "#f8fafc",
-        backgroundSecondary: "#ffffff",
-        text: "#1e293b",
-        textSecondary: "#64748b",
-        border: "#e2e8f0",
-        card: "#ffffff",
-        gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    };
 }
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function ThemeProvider({ children }: { children: ReactNode }) {
     const [darkMode, setDarkMode] = useState(false);
 
-    const toggleTheme = () => setDarkMode((prev) => !prev);
+    // 首次挂载后读取本地偏好，避免 SSR 阶段读到 localStorage 造成闪烁
+    useEffect(() => {
+        try {
+            const saved = window.localStorage.getItem(STORAGE_KEY);
+            if (saved === "dark" || saved === "light") {
+                setDarkMode(saved === "dark");
+            }
+        } catch {
+            // 隐私模式下 localStorage 不可用，忽略即可
+        }
+    }, []);
 
-    const customTheme: CustomTheme = {
-        darkMode,
-        colors: getThemeColors(darkMode),
-    };
+    const toggleTheme = useCallback(() => {
+        setDarkMode((prev) => {
+            const next = !prev;
+            try {
+                window.localStorage.setItem(
+                    STORAGE_KEY,
+                    next ? "dark" : "light",
+                );
+            } catch {
+                // 同上
+            }
+            return next;
+        });
+    }, []);
 
-    const antdTheme: ThemeConfig = {
-        algorithm: darkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-            colorPrimary: darkMode ? "#818cf8" : "#667eea",
-            borderRadius: 8,
-            colorBgContainer: darkMode ? "#1e293b" : "#ffffff",
-            colorBgElevated: darkMode ? "#1e293b" : "#ffffff",
-            colorText: darkMode ? "#f8fafc" : "#1e293b",
-            colorTextSecondary: darkMode ? "#94a3b8" : "#64748b",
-            colorBorder: darkMode ? "#334155" : "#e2e8f0",
-        },
-    };
+    const studio = useMemo<StudioTheme>(
+        () => ({
+            darkMode,
+            colors: darkMode ? DARK : LIGHT,
+            fonts: { display: fontDisplay, body: fontBody, mono: fontMono },
+        }),
+        [darkMode],
+    );
+
+    const antdTheme = useMemo<ThemeConfig>(
+        () => ({
+            algorithm: darkMode
+                ? antdAlgorithm.darkAlgorithm
+                : antdAlgorithm.defaultAlgorithm,
+            token: {
+                colorPrimary: studio.colors.accent,
+                colorInfo: studio.colors.accent,
+                colorSuccess: "#1f8a5b",
+                colorWarning: "#b7791f",
+                colorError: "#c0392b",
+                colorText: studio.colors.ink,
+                colorTextSecondary: studio.colors.inkSoft,
+                colorBorder: studio.colors.rule,
+                colorSplit: studio.colors.rule,
+                colorBgLayout: studio.colors.board,
+                colorBgContainer: studio.colors.sheet,
+                colorBgElevated: studio.colors.sheet,
+                borderRadius: 6,
+                controlHeight: 38,
+                fontFamily: fontBody,
+            },
+            components: {
+                Button: { fontWeight: 500, primaryShadow: "none" },
+                Input: {
+                    activeShadow: `0 0 0 3px ${studio.colors.accent}26`,
+                },
+            },
+        }),
+        [darkMode, studio],
+    );
 
     return (
-        <ThemeContext.Provider value={{ theme: customTheme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme: studio, toggleTheme }}>
             <ConfigProvider theme={antdTheme}>
-                <App
-                    message={{ duration: 2 }}
-                    notification={{ placement: "topRight" }}
-                >
-                    <div
-                        style={{
-                            ...styles.container,
-                            background: customTheme.colors.gradient,
-                        }}
+                <StyledThemeProvider theme={studio}>
+                    <App
+                        message={{ duration: 2, maxCount: 2 }}
+                        notification={{ placement: "topRight" }}
                     >
-                        {children}
-                    </div>
-                </App>
+                        <div
+                            style={{
+                                minHeight: "100vh",
+                                background: studio.colors.board,
+                                color: studio.colors.ink,
+                                colorScheme: darkMode ? "dark" : "light",
+                            }}
+                        >
+                            {children}
+                        </div>
+                    </App>
+                </StyledThemeProvider>
             </ConfigProvider>
         </ThemeContext.Provider>
     );
@@ -104,12 +195,5 @@ export function useTheme() {
     }
     return context;
 }
-
-const styles = {
-    container: {
-        minHeight: "100vh",
-        transition: "background 0.3s ease",
-    },
-};
 
 export default ThemeProvider;

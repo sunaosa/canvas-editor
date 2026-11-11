@@ -1,18 +1,15 @@
 "use client";
 
-import { Button, Spin, Typography } from "antd";
+import { Button, Spin } from "antd";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import styled from "styled-components";
+import { SparkIcon } from "@/components/icons";
 import TopNav from "@/components/top-nav";
 import { useAuthStore } from "@/store/auth-store";
-import { useTheme } from "../theme-provider";
-
-const { Text, Title } = Typography;
 
 export default function ChatPage() {
     const router = useRouter();
-    const { theme } = useTheme();
 
     const user = useAuthStore((s) => s.user);
     const loading = useAuthStore((s) => s.loading);
@@ -40,25 +37,13 @@ export default function ChatPage() {
             <>
                 <TopNav />
                 <Centered>
-                    <EmptyCard
-                        $darkMode={theme.darkMode}
-                        style={{ backgroundColor: theme.colors.card }}
-                    >
-                        <Title level={4} style={{ color: theme.colors.text }}>
-                            无法获取用户信息
-                        </Title>
-                        <Text style={{ color: theme.colors.textSecondary }}>
-                            网络或服务异常，请稍后重试
-                        </Text>
-                        <br />
-                        <Button
-                            type="primary"
-                            style={{ marginTop: 16 }}
-                            onClick={() => fetchMe()}
-                        >
+                    <Panel>
+                        <PanelTitle>无法获取用户信息</PanelTitle>
+                        <PanelText>网络或服务异常，请稍后重试。</PanelText>
+                        <RetryButton type="primary" onClick={() => fetchMe()}>
                             重试
-                        </Button>
-                    </EmptyCard>
+                        </RetryButton>
+                    </Panel>
                 </Centered>
             </>
         );
@@ -79,47 +64,145 @@ export default function ChatPage() {
         <>
             <TopNav />
             <Content>
-                <EmptyCard
-                    $darkMode={theme.darkMode}
-                    style={{ backgroundColor: theme.colors.card }}
-                >
-                    <Title level={4} style={{ color: theme.colors.text }}>
-                        欢迎，{user.displayName || user.username} 👋
-                    </Title>
-                    <Text style={{ color: theme.colors.textSecondary }}>
-                        UUID: {user.uuid}
-                    </Text>
-                    <br />
-                    <Text style={{ color: theme.colors.textSecondary }}>
-                        邮箱: {user.email || "未设置"}
-                    </Text>
-                </EmptyCard>
+                <Panel>
+                    <PanelIcon>
+                        <SparkIcon size={22} />
+                    </PanelIcon>
+                    <PanelTitle>
+                        欢迎，{user.displayName || user.username}
+                    </PanelTitle>
+                    <PanelText>AI 对话还在准备中，先回画板落两笔？</PanelText>
+
+                    <InfoList>
+                        <InfoRow>
+                            <InfoLabel>邮箱</InfoLabel>
+                            <InfoValue>{user.email || "未设置"}</InfoValue>
+                        </InfoRow>
+                        <InfoRow>
+                            <InfoLabel>用户 ID</InfoLabel>
+                            <InfoValue>{user.uuid}</InfoValue>
+                        </InfoRow>
+                        <InfoRow>
+                            <InfoLabel>注册于</InfoLabel>
+                            <InfoValue>
+                                {new Date(user.createdAt).toLocaleDateString(
+                                    "zh-CN",
+                                )}
+                            </InfoValue>
+                        </InfoRow>
+                    </InfoList>
+
+                    <BackLink onClick={() => router.push("/")}>
+                        回到画板
+                    </BackLink>
+                </Panel>
             </Content>
         </>
     );
 }
 
 const Centered = styled.div`
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 56px);
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px;
 `;
 
 const Content = styled.div`
-    padding: 32px;
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 56px);
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px;
+    background: ${({ theme }) => theme.colors.boardDeep};
 `;
 
-const EmptyCard = styled.div<{ $darkMode?: boolean }>`
-    padding: 48px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: ${({ $darkMode }) =>
-        $darkMode
-            ? "0 10px 30px rgba(0, 0, 0, 0.4)"
-            : "0 10px 30px rgba(0, 0, 0, 0.1)"};
+const Panel = styled.div`
+    width: 100%;
+    max-width: 460px;
+    padding: 32px;
+    border-radius: 8px;
+    background: ${({ theme }) => theme.colors.sheet};
+    border: 1px solid ${({ theme }) => theme.colors.rule};
+    box-shadow: ${({ theme }) => theme.colors.shadow};
+`;
+
+const PanelIcon = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: ${({ theme }) => theme.colors.accentSoft};
+    color: ${({ theme }) => theme.colors.accent};
+`;
+
+const PanelTitle = styled.h2`
+    margin: 0 0 6px;
+    font-family: ${({ theme }) => theme.fonts.display};
+    font-size: 21px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.ink};
+`;
+
+const PanelText = styled.p`
+    margin: 0 0 20px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: ${({ theme }) => theme.colors.inkSoft};
+`;
+
+const RetryButton = styled(Button)`
+    && {
+        border-radius: 6px;
+    }
+`;
+
+const InfoList = styled.dl`
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 22px;
+    padding: 16px 0;
+    border-top: 1px solid ${({ theme }) => theme.colors.rule};
+    border-bottom: 1px solid ${({ theme }) => theme.colors.rule};
+`;
+
+const InfoRow = styled.div`
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 5px 0;
+`;
+
+const InfoLabel = styled.dt`
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: ${({ theme }) => theme.colors.inkSoft};
+`;
+
+const InfoValue = styled.dd`
+    margin: 0;
+    font-family: ${({ theme }) => theme.fonts.mono};
+    font-size: 12.5px;
+    color: ${({ theme }) => theme.colors.ink};
+    text-align: right;
+    word-break: break-all;
+`;
+
+const BackLink = styled.button.attrs({ type: "button" })`
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.accent};
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
 `;

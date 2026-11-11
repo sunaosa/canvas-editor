@@ -1,23 +1,16 @@
 "use client";
 
-import {
-    App,
-    Badge,
-    Button,
-    Dropdown,
-    Menu,
-    Switch,
-    Tooltip,
-    Typography,
-} from "antd";
+import { App, Dropdown, Tooltip } from "antd";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import styled from "styled-components";
+import { useTheme } from "@/app/theme-provider";
 import { ApiError } from "@/lib/api";
 import { useAuthStore } from "@/store/auth-store";
-import { useTheme } from "../app/theme-provider";
-
-const { Text } = Typography;
+import { MoonIcon, SparkIcon, SunIcon } from "./icons";
+import { LogoMark } from "./logo";
+import { IconButton } from "./ui";
 
 /** 未登录用户点 chat 模块时统一引导到登录 */
 function gotoChat(router: ReturnType<typeof useRouter>, loggedIn: boolean) {
@@ -46,8 +39,8 @@ export default function TopNav() {
         }
     }, [initialized, fetchMe]);
 
-    const selectedKeys = pathname.startsWith("/chat") ? ["/chat"] : ["/"];
     const isLoggedIn = Boolean(user);
+    const path = pathname ?? "/";
 
     const handleNav = (key: string) => {
         if (key === "/chat") {
@@ -81,210 +74,225 @@ export default function TopNav() {
     };
 
     return (
-        <Bar
-            $bg={theme.colors.backgroundSecondary}
-            $border={theme.colors.border}
-        >
+        <Bar>
             <Left>
-                <Logo
-                    onClick={() => router.push("/")}
-                    role="button"
-                    tabIndex={0}
-                >
-                    <LogoIcon>🎨</LogoIcon>
-                    <LogoText $color={theme.colors.text}>
-                        Canvas Editor
-                    </LogoText>
-                </Logo>
+                <Brand onClick={() => router.push("/")}>
+                    <LogoMark size={26} />
+                    <BrandName>Canvas Editor</BrandName>
+                </Brand>
 
-                <Menu
-                    mode="horizontal"
-                    selectedKeys={selectedKeys}
-                    onClick={({ key }) => handleNav(key)}
-                    style={{
-                        background: "transparent",
-                        borderBottom: "none",
-                        minWidth: 320,
-                    }}
-                    items={[
-                        {
-                            key: "/",
-                            label: "✏️ 手绘",
-                        },
-                        {
-                            key: "/chat",
-                            label: "🤖 AI 对话",
-                        },
-                    ]}
-                />
+                <Nav>
+                    <NavItem
+                        href="/"
+                        $active={path === "/"}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleNav("/");
+                        }}
+                    >
+                        手绘
+                    </NavItem>
+                    <NavItem
+                        href="/chat"
+                        $active={path.startsWith("/chat")}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleNav("/chat");
+                        }}
+                    >
+                        <SparkIcon size={15} />
+                        AI 对话
+                    </NavItem>
+                </Nav>
             </Left>
 
             <Right>
                 <Tooltip
-                    title={
-                        isLoggedIn ? "打开 AI 对话" : "登录后即可使用 AI 对话"
-                    }
-                    placement="bottomRight"
-                >
-                    <ChatRobotButton
-                        type="text"
-                        shape="circle"
-                        size="large"
-                        aria-label="AI 对话"
-                        onClick={() => gotoChat(router, isLoggedIn)}
-                        $color={theme.colors.primary}
-                    >
-                        <Badge dot={isLoggedIn} color={theme.colors.primary}>
-                            <RobotAvatar $bg={theme.colors.primary}>
-                                🤖
-                            </RobotAvatar>
-                        </Badge>
-                    </ChatRobotButton>
-                </Tooltip>
-
-                <Tooltip
                     title={theme.darkMode ? "切换到浅色模式" : "切换到深色模式"}
                     placement="bottomRight"
                 >
-                    <Switch
-                        checked={theme.darkMode}
-                        onChange={toggleTheme}
-                        checkedChildren="🌙"
-                        unCheckedChildren="☀️"
-                        aria-label="切换主题"
-                    />
+                    <IconButton
+                        $size={34}
+                        aria-label={
+                            theme.darkMode ? "切换到浅色模式" : "切换到深色模式"
+                        }
+                        onClick={toggleTheme}
+                    >
+                        {theme.darkMode ? (
+                            <SunIcon size={17} />
+                        ) : (
+                            <MoonIcon size={17} />
+                        )}
+                    </IconButton>
                 </Tooltip>
+
                 {isLoggedIn && user ? (
                     <Dropdown menu={userMenu} placement="bottomRight">
-                        <UserBadge $border={theme.colors.border}>
-                            <Avatar $bg={theme.colors.primary}>
+                        <UserBadge>
+                            <Avatar>
                                 {(user.displayName || user.username)
                                     .charAt(0)
                                     .toUpperCase()}
                             </Avatar>
-                            <Text
-                                style={{
-                                    color: theme.colors.text,
-                                    marginLeft: 8,
-                                    maxWidth: 140,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
+                            <UserName>
                                 {user.displayName || user.username}
-                            </Text>
+                            </UserName>
                         </UserBadge>
                     </Dropdown>
                 ) : (
-                    <Button
-                        type="primary"
-                        onClick={() => router.push("/login")}
-                        style={{ borderRadius: 8 }}
-                    >
-                        登录
-                    </Button>
+                    <LoginLink href="/login">登录</LoginLink>
                 )}
-
-                
             </Right>
         </Bar>
     );
 }
 
-const Bar = styled.header<{ $bg: string; $border: string }>`
+const Bar = styled.header`
     position: sticky;
     top: 0;
     z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 0 24px;
-    height: 64px;
-    background: ${({ $bg }) => $bg};
-    border-bottom: 1px solid ${({ $border }) => $border};
-    backdrop-filter: blur(8px);
+    gap: 20px;
+    height: 56px;
+    padding: 0 20px;
+    background: color-mix(in srgb, ${({ theme }) => theme.colors.board} 88%, transparent);
+    border-bottom: 1px solid ${({ theme }) => theme.colors.rule};
+    backdrop-filter: blur(10px);
+
+    @media (max-width: 640px) {
+        padding: 0 14px;
+        gap: 12px;
+    }
 `;
 
 const Left = styled.div`
     display: flex;
     align-items: center;
-    gap: 24px;
-    flex: 1;
+    gap: 22px;
     min-width: 0;
 `;
 
 const Right = styled.div`
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex: none;
 `;
 
-const Logo = styled.div`
+const Brand = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    user-select: none;
+    flex: none;
+`;
+
+const BrandName = styled.span`
+    font-family: ${({ theme }) => theme.fonts.display};
+    font-size: 14.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    color: ${({ theme }) => theme.colors.ink};
+    white-space: nowrap;
+
+    @media (max-width: 520px) {
+        display: none;
+    }
+`;
+
+const Nav = styled.nav`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+`;
+
+const NavItem = styled(Link)<{ $active: boolean }>`
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    padding: 0 12px;
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none;
+    color: ${({ $active, theme }) =>
+        $active ? theme.colors.ink : theme.colors.inkSoft};
+
+    &::after {
+        content: "";
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: -1px;
+        height: 2px;
+        background: ${({ $active, theme }) =>
+            $active ? theme.colors.accent : "transparent"};
+        transition: background 0.18s ease;
+    }
+
+    &:hover {
+        color: ${({ theme }) => theme.colors.ink};
+    }
+`;
+
+const UserBadge = styled.button.attrs({ type: "button" })`
     display: flex;
     align-items: center;
     gap: 8px;
-    cursor: pointer;
-    user-select: none;
-`;
-
-const LogoIcon = styled.span`
-    font-size: 24px;
-`;
-
-const LogoText = styled.span<{ $color: string }>`
-    font-size: 16px;
-    font-weight: 600;
-    color: ${({ $color }) => $color};
-    white-space: nowrap;
-`;
-
-const ChatRobotButton = styled(Button)<{ $color: string }>`
-    &:hover {
-        background: ${({ $color }) => `${$color}15`};
-    }
-`;
-
-const RobotAvatar = styled.span<{ $bg: string }>`
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: ${({ $bg }) => $bg};
-    color: #fff;
-    font-size: 18px;
-`;
-
-const UserBadge = styled.button<{ $border: string }>`
-    display: flex;
-    align-items: center;
-    padding: 4px 12px 4px 4px;
+    height: 34px;
+    padding: 0 12px 0 4px;
+    border: 1px solid ${({ theme }) => theme.colors.rule};
     border-radius: 999px;
-    border: 1px solid ${({ $border }) => $border};
     background: transparent;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.15s ease;
+
     &:hover {
-        background: rgba(0, 0, 0, 0.04);
+        background: color-mix(in srgb, ${({ theme }) => theme.colors.ink} 6%, transparent);
     }
 `;
 
-const Avatar = styled.span<{ $bg: string }>`
+const Avatar = styled.span`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: ${({ $bg }) => $bg};
-    color: #fff;
-    font-size: 13px;
+    background: ${({ theme }) => theme.colors.accent};
+    color: #ffffff;
+    font-size: 12px;
     font-weight: 600;
 `;
 
-// const ThemeSwitch = styled(Switch)`
-//     min-width: 56px;
-// `;
+const UserName = styled.span`
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: ${({ theme }) => theme.colors.ink};
+`;
+
+const LoginLink = styled(Link)`
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 6px;
+    background: ${({ theme }) => theme.colors.accent};
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: ${({ theme }) => theme.colors.accentInk};
+    }
+`;
